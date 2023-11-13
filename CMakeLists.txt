@@ -25,8 +25,11 @@ add_definitions(
 set(ALL_LIBS ${OPENGL_LIBRARY} glfw GLEW)
 
 add_executable(
-        game_test main.cpp
-        shaders.cpp include/shaders.h
+        game_test src/main.cpp
+        src/shader.cpp include/shader.h
+        src/texture2d.cpp include/texture2d.h
+        
+        src/resource_manager.cpp include/resource_manager.h
 )
 
 target_link_libraries(game_test ${ALL_LIBS})
