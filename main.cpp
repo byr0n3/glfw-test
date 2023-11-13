@@ -1,8 +1,8 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <include/shaders.h>
-#include <fstream>
 
 // basic triangle shape
 static const GLfloat triangle_vertex[] = {
@@ -59,8 +59,30 @@ int main() {
 	glBindVertexArray(vertexId);
 
 	// Load the simple shaders
-	GLuint programId = byrone::shaders::load("assets/shaders/simple_vertex_shader.vertexshader",
-											 "assets/shaders/simple_fragment_shader.fragmentshader");
+	GLuint programId = byrone::shaders::load("simple_vertex_shader.vertexshader",
+											 "simple_fragment_shader.fragmentshader");
+
+	// Get for the MVP variable
+	GLuint matrixId = glGetUniformLocation(programId, "mvp");
+
+	// FoV, aspect ratio (4/3), near clipping plane, far clipping plane
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+
+	// Camera view
+	glm::mat4 cameraView = glm::lookAt(
+			// Camera is positioned at (4,3,3)
+			glm::vec3(4, 3, 3),
+			// Camera looks at the origin
+			glm::vec3(0, 0, 0),
+			// And looks up (Vector3.up)
+			glm::vec3(0, 1, 0)
+	);
+
+	// Model matrix : an identity matrix (model will be at the origin)
+	auto model = glm::mat4(1.0f);
+
+	// Model view projection : multiplication of our 3 matrices
+	glm::mat4 mvp = projection * cameraView * model;
 
 	GLuint vertexBuffer;
 	// Generate 1 buffer
@@ -75,6 +97,12 @@ int main() {
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Use our compiled shaders
+		glUseProgram(programId);
+
+		// Use our calculated rotation on the currently bound shader
+		glUniformMatrix4fv(matrixId, 1, GL_FALSE, &mvp[0][0]);
+
 		// Load the previously made buffer
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -86,8 +114,6 @@ int main() {
 				0,
 				(void *) nullptr // offset
 		);
-
-		glUseProgram(programId);
 
 		// Draw
 		glDrawArrays(GL_TRIANGLES, 0, 3);

@@ -4,6 +4,5 @@ out vec3 color;
 
 void main()
 {
-	// Red
 	color = vec3(1,0,0);
 }

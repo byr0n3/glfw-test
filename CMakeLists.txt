@@ -7,7 +7,12 @@ find_package(OpenGL REQUIRED)
 
 add_subdirectory(external)
 
-include_directories(external/glfw/include/ external/glew/include/ .)
+include_directories(
+        .
+        external/glfw/include/
+        external/glew/include/
+        external/glm/
+)
 
 add_definitions(
         -DTW_STATIC
@@ -19,7 +24,8 @@ add_definitions(
 
 set(ALL_LIBS ${OPENGL_LIBRARY} glfw GLEW)
 
-add_executable(game_test main.cpp
+add_executable(
+        game_test main.cpp
         shaders.cpp include/shaders.h
 )
 

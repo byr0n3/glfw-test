@@ -4,83 +4,77 @@
 #include <sstream>
 #include "include/shaders.h"
 
-GLuint byrone::shaders::load(const char *vertex_path, const char *fragment_path) {
+GLuint byrone::shaders::load(const std::string &vertex_path, const std::string &fragment_path) {
 	// Create the shaders we need
 	GLuint vertexId = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentId = glCreateShader(GL_FRAGMENT_SHADER);
 
-	// Read the vertex shader from the specified path
-	std::string vertexShader;
-	std::ifstream vertexStream(vertex_path, std::ios::in);
+	// Read the shader contents from the specified path
+	std::string vertexShader = loadFromFile(vertex_path);
+	std::string fragmentShader = loadFromFile(fragment_path);
 
-	if (!vertexStream.is_open()) {
-		std::cout << "Couldn't open '" << vertex_path << "'. Make sure the files exists." << std::endl;
-		return 0;
+	compile(vertexId, vertexShader.c_str());
+	compile(fragmentId, fragmentShader.c_str());
+
+	GLuint programId = compileProgram(vertexId, fragmentId);
+
+	// Cleanup
+
+	glDetachShader(programId, vertexId);
+	glDetachShader(programId, fragmentId);
+
+	glDeleteShader(vertexId);
+	glDeleteShader(fragmentId);
+
+	return programId;
+}
+
+std::string loadFromFile(const std::string &path) {
+	std::string result;
+	std::ifstream stream("assets/shaders/" + path, std::ios::in);
+
+	if (!stream.is_open()) {
+		std::cout << "Couldn't open '" << path << "'. Make sure the files exists." << std::endl;
+
+		return result;
 	}
 
-	std::stringstream vertextStrStream;
-	vertextStrStream << vertexStream.rdbuf();
-	vertexShader = vertextStrStream.str();
-	vertexStream.close();
+	std::stringstream strStream;
+	strStream << stream.rdbuf();
 
-	// Read the fragment shader from the specified path
-	std::string fragmentShader;
-	std::ifstream fragmentStream(fragment_path, std::ios::in);
+	result = strStream.str();
 
-	if (fragmentStream.is_open()) {
-		std::stringstream fragmentStrStream;
-		fragmentStrStream << fragmentStream.rdbuf();
-		fragmentShader = fragmentStrStream.str();
-		fragmentStream.close();
-	}
+	stream.close();
 
+	return result;
+}
+
+void compile(GLuint id, const char *ptr) {
 	GLint result = GL_FALSE;
 	int logLength;
 
-	// Compile the vertex shader
+	// Compile the shader
+	glShaderSource(id, 1, &ptr, nullptr);
+	glCompileShader(id);
 
-	std::cout << "Compiling shader: " << vertex_path << std::endl;
-
-	auto vertexPointer = vertexShader.c_str();
-	glShaderSource(vertexId, 1, &vertexPointer, nullptr);
-	glCompileShader(vertexId);
-
-	// Validate the vertex shader
-	glGetShaderiv(vertexId, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(vertexId, GL_INFO_LOG_LENGTH, &logLength);
+	// Validate the shader
+	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 
 	if (logLength > 0) {
-		std::vector<char> vertexError(logLength + 1);
+		std::vector<char> error(logLength + 1);
 
-		glGetShaderInfoLog(vertexId, logLength, nullptr, &vertexError[0]);
+		glGetShaderInfoLog(id, logLength, nullptr, &error[0]);
 
-		std::cout << vertexError[0] << std::endl;
+		std::cout << error[0] << std::endl;
 	}
+}
 
-	// Compile the fragment shader
+GLuint compileProgram(GLuint vertexId, GLuint fragmentId) {
+	GLint result = GL_FALSE;
+	int logLength;
 
-	std::cout << "Compiling shader: " << fragment_path << std::endl;
-
-	auto fragmentPointer = fragmentShader.c_str();
-	glShaderSource(fragmentId, 1, &fragmentPointer, nullptr);
-	glCompileShader(fragmentId);
-
-	// Validate the fragment shader
-	glGetShaderiv(fragmentId, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(fragmentId, GL_INFO_LOG_LENGTH, &logLength);
-
-	if (logLength > 0) {
-		std::vector<char> fragmentError(logLength + 1);
-
-		glGetShaderInfoLog(fragmentId, logLength, nullptr, &fragmentError[0]);
-
-		std::cout << fragmentError[0] << std::endl;
-	}
-
-	// Link the shaders to the program
-
-	std::cout << "Linking program" << std::endl;
-
+	// Create the program & link the shaders
 	GLuint programId = glCreateProgram();
 	glAttachShader(programId, vertexId);
 	glAttachShader(programId, fragmentId);
@@ -91,20 +85,12 @@ GLuint byrone::shaders::load(const char *vertex_path, const char *fragment_path)
 	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
 
 	if (logLength > 0) {
-		std::vector<char> programError(logLength + 1);
+		std::vector<char> error(logLength + 1);
 
-		glGetProgramInfoLog(programId, logLength, nullptr, &programError[0]);
+		glGetProgramInfoLog(programId, logLength, nullptr, &error[0]);
 
-		std::cout << programError[0] << std::endl;
+		std::cout << error[0] << std::endl;
 	}
-
-	// Cleanup
-
-	glDetachShader(programId, vertexId);
-	glDetachShader(programId, fragmentId);
-
-	glDeleteShader(vertexId);
-	glDeleteShader(fragmentId);
 
 	return programId;
 }
