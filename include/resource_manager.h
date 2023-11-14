@@ -22,7 +22,7 @@ namespace byrone {
 		static Shader GetShader(unsigned int id);
 
 		// loads and compile a texture from file
-		static byrone::Texture2D LoadTexture(const char *file, bool alpha);
+		static byrone::Texture2D LoadTexture(const char *file, bool alpha, byrone::TextureType type);
 
 		// retrieves a stored texture
 		static Texture2D GetTexture(unsigned int id);
@@ -39,7 +39,11 @@ namespace byrone {
 		static Shader compileShaderFiles(const char *vertexFile, const char *fragmentFile);
 
 		// loads a single texture from a file
-		static Texture2D compileTextureFile(const char *file, bool alpha);
+		static Texture2D compileTextureFile(const char *file, bool alpha, byrone::TextureType type);
+
+		static void loadBmpFile(byrone::Texture2D texture, FILE *file, const char *path);
+
+		static void loadDdsFile(byrone::Texture2D texture, FILE *file, const char *path);
 	};
 }
 

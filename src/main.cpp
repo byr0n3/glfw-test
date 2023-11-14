@@ -5,7 +5,7 @@
 #include <include/resource_manager.h>
 #include <sstream>
 
-// basic triangle shape
+// basic cube shape
 static const GLfloat cube_vertex[] = {
 		-1.0f, -1.0f, -1.0f,
 		-1.0f, -1.0f, 1.0f,
@@ -45,7 +45,44 @@ static const GLfloat cube_vertex[] = {
 		1.0f, -1.0f, 1.0f
 };
 
-static GLfloat colors[12 * 3 * 3];
+static const GLfloat uv_vertex[] = {
+		0.000059f, 1.0f - 0.000004f,
+		0.000103f, 1.0f - 0.336048f,
+		0.335973f, 1.0f - 0.335903f,
+		1.000023f, 1.0f - 0.000013f,
+		0.667979f, 1.0f - 0.335851f,
+		0.999958f, 1.0f - 0.336064f,
+		0.667979f, 1.0f - 0.335851f,
+		0.336024f, 1.0f - 0.671877f,
+		0.667969f, 1.0f - 0.671889f,
+		1.000023f, 1.0f - 0.000013f,
+		0.668104f, 1.0f - 0.000013f,
+		0.667979f, 1.0f - 0.335851f,
+		0.000059f, 1.0f - 0.000004f,
+		0.335973f, 1.0f - 0.335903f,
+		0.336098f, 1.0f - 0.000071f,
+		0.667979f, 1.0f - 0.335851f,
+		0.335973f, 1.0f - 0.335903f,
+		0.336024f, 1.0f - 0.671877f,
+		1.000004f, 1.0f - 0.671847f,
+		0.999958f, 1.0f - 0.336064f,
+		0.667979f, 1.0f - 0.335851f,
+		0.668104f, 1.0f - 0.000013f,
+		0.335973f, 1.0f - 0.335903f,
+		0.667979f, 1.0f - 0.335851f,
+		0.335973f, 1.0f - 0.335903f,
+		0.668104f, 1.0f - 0.000013f,
+		0.336098f, 1.0f - 0.000071f,
+		0.000103f, 1.0f - 0.336048f,
+		0.000004f, 1.0f - 0.671870f,
+		0.336024f, 1.0f - 0.671877f,
+		0.000103f, 1.0f - 0.336048f,
+		0.336024f, 1.0f - 0.671877f,
+		0.335973f, 1.0f - 0.335903f,
+		0.667969f, 1.0f - 0.671889f,
+		1.000004f, 1.0f - 0.671847f,
+		0.667979f, 1.0f - 0.335851f
+};
 
 static double lastRenderTime;
 static int frameCount;
@@ -66,10 +103,6 @@ void updatePerformanceMetrics(GLFWwindow *window) {
 		frameCount = 0;
 		lastRenderTime += 1.0;
 	}
-}
-
-float rnd_color() {
-	return (float) std::rand() / (float) RAND_MAX;
 }
 
 int main() {
@@ -128,6 +161,11 @@ int main() {
 	byrone::Shader shader = byrone::ResourceManager::LoadShader("assets/shaders/simple_vertex_shader.vertexshader",
 																"assets/shaders/simple_fragment_shader.fragmentshader");
 
+	// Load our test UV
+	byrone::Texture2D texture = byrone::ResourceManager::LoadTexture("assets/uvtemplate.DDS",
+																	 false,
+																	 byrone::TextureType::DDS);
+
 	// FoV, aspect ratio (4/3), near clipping plane, far clipping plane
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 
@@ -155,9 +193,10 @@ int main() {
 	// Give the triangle vertices
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertex), cube_vertex, GL_STATIC_DRAW);
 
-	GLuint colorBuffer;
-	glGenBuffers(1, &colorBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+	GLuint uvBuffer;
+	glGenBuffers(1, &uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(uv_vertex), uv_vertex, GL_STATIC_DRAW);
 
 	lastRenderTime = glfwGetTime();
 	frameCount = 0;
@@ -169,16 +208,12 @@ int main() {
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		for (int i = 0; i < 12 * 3; i++) {
-			colors[3 * i] = rnd_color();
-			colors[3 * i + 1] = rnd_color();
-			colors[3 * i + 2] = rnd_color();
-		}
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
 		// Use our calculated rotation on the currently bound shader and enable the shader
 		shader.SetMatrix4("mvp", mvp, true);
+
+		// Bind our loaded texture and apply it on the shader
+		texture.Bind();
+		shader.SetInteger("textureSampler", 0);
 
 		// Load the previously made buffer
 		glEnableVertexAttribArray(0);
@@ -193,10 +228,10 @@ int main() {
 		);
 
 		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
 		glVertexAttribPointer(
 				1,
-				3,
+				2,
 				GL_FLOAT,
 				GL_FALSE,
 				0,

@@ -19,8 +19,8 @@ byrone::Shader byrone::ResourceManager::GetShader(unsigned int id) {
 	return Shaders[id];
 }
 
-byrone::Texture2D byrone::ResourceManager::LoadTexture(const char *file, bool alpha) {
-	auto texture = compileTextureFile(file, alpha);
+byrone::Texture2D byrone::ResourceManager::LoadTexture(const char *file, bool alpha, byrone::TextureType type) {
+	auto texture = compileTextureFile(file, alpha, type);
 
 	Textures[texture.id] = texture;
 
@@ -82,8 +82,7 @@ byrone::Shader byrone::ResourceManager::compileShaderFiles(const char *vertexFil
 	return shader;
 }
 
-// @todo Load image file
-byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *file, bool alpha) {
+byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *path, bool alpha, byrone::TextureType type) {
 	Texture2D texture;
 
 	if (alpha) {
@@ -91,16 +90,88 @@ byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *file, 
 		texture.imageFormat = GL_RGBA;
 	}
 
+	auto *file = fopen(path, "rb");
+
+	if (file == nullptr) {
+		std::cout << "Failed to open file:" << std::endl
+				  << path << std::endl;
+		return texture;
+	}
+
+	switch (type) {
+		case TextureType::BMP:
+			loadBmpFile(texture, file, path);
+			break;
+
+		case TextureType::DDS:
+			loadDdsFile(texture, file, path);
+			break;
+
+		default:
+			std::cout << "Unknown texture type" << std::endl;
+			break;
+	}
+
+	fclose(file);
+
 	return texture;
+}
 
-	/*// load the image file
-	int width, height, nrChannels;
-	unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
+void byrone::ResourceManager::loadBmpFile(byrone::Texture2D texture, FILE *file, const char *path) {
+	unsigned char header[54];
 
-	// generate the texture data
+	auto read = fread(header, 1, 54, file);
+
+	if ((read != 54) || (header[0] != 'B') || (header[1] != 'M')) {
+		std::cout << "Invalid BMP file:" << std::endl
+				  << path << std::endl;
+
+		return;
+	}
+
+	// width * height * 3
+	unsigned int imageSize = *(int *) &(header[0x22]);
+	GLsizei width = *(GLsizei *) &(header[0x12]);
+	GLsizei height = *(GLsizei *) &(header[0x16]);
+
+	if (imageSize == 0) {
+		imageSize = width * height * 3;
+	}
+
+	auto *data = new unsigned char[imageSize];
+	fread(data, 1, imageSize, file);
+
 	texture.Generate(width, height, data);
+}
 
-	// deallocate the image file
-	stbi_image_free(data);
-	return texture;*/
+void byrone::ResourceManager::loadDdsFile(byrone::Texture2D texture, FILE *file, const char *path) {
+	char fileCode[4];
+	fread(fileCode, 1, 4, file);
+
+	if (strncmp(fileCode, "DDS ", 4) != 0) {
+		std::cout << "Invalid DDS file:" << std::endl
+				  << path << std::endl;
+
+		return;
+	}
+
+	unsigned char header[124];
+
+	fread(&header, 124, 1, file);
+
+	GLsizei height = *(GLsizei *) &(header[8]);
+	GLsizei width = *(GLsizei *) &(header[12]);
+	unsigned int linearSize = *(unsigned int *) &(header[16]);
+	unsigned int mipMapCount = *(unsigned int *) &(header[24]);
+	unsigned int fourCC = *(unsigned int *) &(header[80]);
+
+	// total size including all mipmap levels
+	unsigned int bufferSize = mipMapCount > 1 ? linearSize * 2 : linearSize;
+	unsigned char *buffer = (unsigned char *) malloc(bufferSize * sizeof(unsigned char));
+
+	fread(buffer, 1, bufferSize, file);
+
+	texture.GenerateFromMipmap(width, height, fourCC, mipMapCount, buffer);
+
+	free(buffer);
 }
