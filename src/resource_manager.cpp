@@ -4,8 +4,8 @@
 #include <sstream>
 #include <fstream>
 
-std::map<unsigned int, byrone::Texture2D>    byrone::ResourceManager::Textures;
-std::map<unsigned int, byrone::Shader>       byrone::ResourceManager::Shaders;
+std::map<unsigned int, byrone::Shader> byrone::ResourceManager::Shaders;
+std::map<unsigned int, byrone::Texture2D> byrone::ResourceManager::Textures;
 
 byrone::Shader byrone::ResourceManager::LoadShader(const char *vertexFile, const char *fragmentFile) {
 	auto shader = compileShaderFiles(vertexFile, fragmentFile);
@@ -29,6 +29,35 @@ byrone::Texture2D byrone::ResourceManager::LoadTexture(const char *file, bool al
 
 byrone::Texture2D byrone::ResourceManager::GetTexture(unsigned int id) {
 	return Textures[id];
+}
+
+byrone::Model byrone::ResourceManager::LoadModel(const char *path, byrone::ModelType type) {
+	auto *file = fopen(path, "r");
+
+	if (file == nullptr) {
+		std::cout << "Failed to open file:" << std::endl
+				  << path << std::endl;
+	}
+
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+
+	switch (type) {
+		case ModelType::OBJ:
+			loadObjFile(vertices, uvs, normals, file, path);
+			break;
+
+		default:
+			std::cout << "Unknown Model type" << std::endl;
+			break;
+	}
+
+	byrone::Model model(vertices, uvs, normals);
+
+	fclose(file);
+
+	return model;
 }
 
 void byrone::ResourceManager::Clear() {
@@ -174,4 +203,83 @@ void byrone::ResourceManager::loadDdsFile(byrone::Texture2D texture, FILE *file,
 	texture.GenerateFromMipmap(width, height, fourCC, mipMapCount, buffer);
 
 	free(buffer);
+}
+
+void byrone::ResourceManager::loadObjFile(std::vector<glm::vec3> &vertices,
+										  std::vector<glm::vec2> &uvs,
+										  std::vector<glm::vec3> &normals,
+										  FILE *file,
+										  const char *path) {
+	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+	std::vector<glm::vec3> temp_vertices;
+	std::vector<glm::vec2> temp_uvs;
+	std::vector<glm::vec3> temp_normals;
+
+	while (true) {
+		// @todo BAD assumption
+		char lineHeader[128];
+
+		auto result = fscanf(file, "%s", lineHeader);
+
+		if (result == EOF) {
+			break;
+		}
+
+		if (strcmp(lineHeader, "v") == 0) {
+			glm::vec3 vertex;
+			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			temp_vertices.push_back(vertex);
+		} else if (strcmp(lineHeader, "vt") == 0) {
+			glm::vec2 uv;
+			fscanf(file, "%f %f\n", &uv.x, &uv.y);
+			temp_uvs.push_back(uv);
+		} else if (strcmp(lineHeader, "vn") == 0) {
+			glm::vec3 normal;
+			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			temp_normals.push_back(normal);
+		} else if (strcmp(lineHeader, "f") == 0) {
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+
+			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0],
+								 &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2],
+								 &normalIndex[2]);
+
+			if (matches != 9) {
+				std::cout << "Parsing error for file: " << std::endl
+						  << path << std::endl;
+				return;
+			}
+
+			vertexIndices.push_back(vertexIndex[0]);
+			vertexIndices.push_back(vertexIndex[1]);
+			vertexIndices.push_back(vertexIndex[2]);
+			uvIndices.push_back(uvIndex[0]);
+			uvIndices.push_back(uvIndex[1]);
+			uvIndices.push_back(uvIndex[2]);
+			normalIndices.push_back(normalIndex[0]);
+			normalIndices.push_back(normalIndex[1]);
+			normalIndices.push_back(normalIndex[2]);
+		} else {
+			// Comment/other bogus line
+			char temp[1000];
+			fgets(temp, 1000, file);
+		}
+	}
+
+	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+		// Get the indices of its attributes
+		unsigned int vertexIndex = vertexIndices[i];
+		unsigned int uvIndex = uvIndices[i];
+		unsigned int normalIndex = normalIndices[i];
+
+		// Get the attributes thanks to the index
+		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+		glm::vec2 uv = temp_uvs[uvIndex - 1];
+		glm::vec3 normal = temp_normals[normalIndex - 1];
+
+		// Put the attributes in buffers
+		vertices.push_back(vertex);
+		uvs.push_back(uv);
+		normals.push_back(normal);
+	}
 }
