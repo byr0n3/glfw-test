@@ -21,6 +21,7 @@ void byrone::Game::Init() const {
 
 	glm::mat4 projection = glm::ortho(0.0f, w, h, 0.0f, -1.0f, 1.0f);
 
+	shader.Use();
 	shader.Set("image", 0);
 	shader.Set("projection", projection);
 
