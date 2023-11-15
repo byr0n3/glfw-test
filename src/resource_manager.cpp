@@ -1,7 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 
-#include "include/resource_manager.h"
-
+#include <include/resource_manager.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -55,13 +54,13 @@ byrone::Shader byrone::ResourceManager::compileShaderFiles(const char *vertexFil
 
 		if (!vertexShaderFile.is_open()) {
 			std::cout << "Failed to read vertex shader:" << std::endl
-					  << vertexFile << std::endl;
+			          << vertexFile << std::endl;
 			return {};
 		}
 
 		if (!fragmentShaderFile.is_open()) {
 			std::cout << "Failed to read fragment shader:" << std::endl
-					  << fragmentFile << std::endl;
+			          << fragmentFile << std::endl;
 			return {};
 		}
 
@@ -76,7 +75,7 @@ byrone::Shader byrone::ResourceManager::compileShaderFiles(const char *vertexFil
 	}
 	catch (std::exception &e) {
 		std::cout << "Failed to read shader files:" << std::endl
-				  << e.what() << std::endl;
+		          << e.what() << std::endl;
 	}
 
 	Shader shader;
@@ -95,6 +94,13 @@ byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *path, 
 
 	int width, height, channels;
 	unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
+
+	if (stbi_failure_reason()) {
+		std::cout << "Failed to read texture file:" << std::endl
+		          << stbi_failure_reason() << std::endl;
+
+		return texture;
+	}
 
 	texture.Generate(width, height, data);
 

@@ -1,11 +1,9 @@
 #include <iostream>
 // we MUST import/reference GLEW before importing GLFW
-#include "GL/glew.h"
-#include "GLFW/glfw3.h"
-#include "include/game.h"
-#include "include/resource_manager.h"
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <include/game.h>
+#include <include/resource_manager.h>
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
@@ -32,16 +30,24 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	// Enable resizing
-	glfwWindowHint(GLFW_RESIZABLE, true);
+	// Disable resizing
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create window
 	GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
+	// Initialize GLEW
+	glewExperimental = true;
+
+	if (glewInit() != GLEW_OK) {
+		std::cout << "Failed to initialize GLEW." << std::endl;
+		glfwTerminate();
+		return 1;
+	}
+
 	// Set callbacks
 	glfwSetKeyCallback(window, key_callback);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// Configure OpenGL
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -65,7 +71,7 @@ int main() {
 		game.Update(deltaTime);
 
 		// Clear screen and render
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		game.Render();
 
@@ -97,9 +103,4 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	} else if (action == GLFW_RELEASE) {
 		game.keys[key] = false;
 	}
-}
-
-// resize handler
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-	glViewport(0, 0, width, height);
 }

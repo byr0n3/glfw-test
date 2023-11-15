@@ -20,7 +20,7 @@ namespace byrone {
 
 		unsigned int width, height;
 
-		void Init();
+		void Init() const;
 
 		void ProcessInput(double deltaTime);
 

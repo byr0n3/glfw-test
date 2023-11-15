@@ -1,7 +1,7 @@
 #ifndef BYRONE_TEXTURE_2D
 #define BYRONE_TEXTURE_2D
 
-#include "GL/glew.h"
+#include <GL/glew.h>
 
 namespace byrone {
 	class Texture2D {
@@ -31,6 +31,9 @@ namespace byrone {
 
 		// binds the texture as the current active GL_TEXTURE_2D texture object
 		void Bind() const;
+
+		// binds the current texture
+		void Unbind() const;
 	};
 }
 

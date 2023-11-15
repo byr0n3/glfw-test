@@ -1,5 +1,4 @@
-#include "include/texture2d.h"
-#include "GL/glew.h"
+#include <include/texture2d.h>
 
 byrone::Texture2D::Texture2D() : id(0),
 								 width(0), height(0),
@@ -40,4 +39,8 @@ void byrone::Texture2D::Generate(GLsizei _width, GLsizei _height, unsigned char 
 void byrone::Texture2D::Bind() const {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->id);
+}
+
+void byrone::Texture2D::Unbind() const {
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

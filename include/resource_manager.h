@@ -3,9 +3,8 @@
 
 #include <map>
 #include <string>
-
-#include "include/shader.h"
-#include "include/texture2d.h"
+#include <include/shader.h>
+#include <include/texture2d.h>
 
 namespace byrone {
 	// manages resources like shaders and textures

@@ -29,6 +29,7 @@ add_executable(
         src/game.cpp include/game.h
         src/shader.cpp include/shader.h
         src/texture2d.cpp include/texture2d.h
+        src/sprite_renderer.cpp include/sprite_renderer.h
         src/resource_manager.cpp include/resource_manager.h
 
         external/stb_image.h
