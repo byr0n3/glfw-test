@@ -1,4 +1,5 @@
 #include <include/sprite_renderer.h>
+#include <src/debug.h>
 
 static const GLfloat vertices[] = {
 		// pos      // tex
@@ -23,17 +24,17 @@ byrone::SpriteRenderer::~SpriteRenderer() {
 void byrone::SpriteRenderer::initialize() {
 	unsigned int vbo;
 
-	glGenVertexArrays(1, &this->vao);
-	glGenBuffers(1, &vbo);
+	GL_CHECK(glGenVertexArrays(1, &this->vao))
+	GL_CHECK(glGenBuffers(1, &vbo))
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vbo))
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW))
 
-	glBindVertexArray(this->vao);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	GL_CHECK(glBindVertexArray(this->vao))
+	GL_CHECK(glEnableVertexAttribArray(0))
+	GL_CHECK(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr))
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0))
+	GL_CHECK(glBindVertexArray(0))
 }
 
 // Because multiplying matrices occurs from right to left, we apply transformations in the following order:
@@ -56,10 +57,10 @@ void byrone::SpriteRenderer::Draw(Texture2D &texture,
 	this->shader.Set("model", model);
 	this->shader.Set("spriteColor", color);
 
-	glActiveTexture(GL_TEXTURE0);
+	GL_CHECK(glActiveTexture(GL_TEXTURE0))
 	texture.Bind();
 
-	glBindVertexArray(this->vao);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(0);
+	GL_CHECK(glBindVertexArray(this->vao))
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6))
+	GL_CHECK(glBindVertexArray(0))
 }

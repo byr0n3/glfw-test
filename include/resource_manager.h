@@ -10,8 +10,8 @@ namespace byrone {
 	// manages resources like shaders and textures
 	class ResourceManager {
 	public:
-		static std::map<unsigned int, Shader> Shaders;
-		static std::map<unsigned int, Texture2D> Textures;
+		static std::unordered_map<unsigned int, Shader> Shaders;
+		static std::unordered_map<unsigned int, Texture2D> Textures;
 
 		// loads and compile a shader from the given files.
 		static Shader LoadShader(const char *vertexFile, const char *fragmentFile);

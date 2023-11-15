@@ -26,6 +26,7 @@ set(ALL_LIBS ${OPENGL_LIBRARY} glfw GLEW)
 
 add_executable(
         game_test src/main.cpp
+        src/debug.h
         src/game.cpp include/game.h
         src/shader.cpp include/shader.h
         src/texture2d.cpp include/texture2d.h

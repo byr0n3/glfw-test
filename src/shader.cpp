@@ -1,76 +1,78 @@
 #include <include/shader.h>
 #include <GL/glew.h>
 #include <iostream>
-#include <vector>
+#include <src/debug.h>
 
 void byrone::Shader::Use() const {
-	glUseProgram(this->id);
+	GL_CHECK(glUseProgram(this->id))
 }
 
 void byrone::Shader::End() const {
-	glUseProgram(0);
+	GL_CHECK(glUseProgram(0))
 }
 
 void byrone::Shader::Compile(const char *vertex, const char *fragment) {
 	// Compile the vertex shader
 	unsigned int vertexId = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexId, 1, &vertex, nullptr);
-	glCompileShader(vertexId);
+	GL_CHECK(glShaderSource(vertexId, 1, &vertex, nullptr))
+	GL_CHECK(glCompileShader(vertexId))
 	checkShaderErrors(vertexId);
 
 	// Compile the fragment shader
 	unsigned int fragmentId = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentId, 1, &fragment, nullptr);
-	glCompileShader(fragmentId);
+	GL_CHECK(glShaderSource(fragmentId, 1, &fragment, nullptr))
+	GL_CHECK(glCompileShader(fragmentId))
 	checkShaderErrors(fragmentId);
 
 	// Create the shader program
 	this->id = glCreateProgram();
-	glAttachShader(this->id, vertexId);
-	glAttachShader(this->id, fragmentId);
+	GL_CHECK(glAttachShader(this->id, vertexId))
+	GL_CHECK(glAttachShader(this->id, fragmentId))
 
-	glLinkProgram(this->id);
+	GL_CHECK(glLinkProgram(this->id))
 	checkProgramErrors(this->id);
 
 	// Cleanup
-	glDeleteShader(vertexId);
-	glDeleteShader(fragmentId);
+	GL_CHECK(glDeleteShader(vertexId))
+	GL_CHECK(glDeleteShader(fragmentId))
 }
 
+// @todo cache `glGetUniformLocation`
+
 void byrone::Shader::Set(const char *name, float value) {
-	glUniform1f(glGetUniformLocation(this->id, name), value);
+	GL_CHECK(glUniform1f(glGetUniformLocation(this->id, name), value))
 }
 
 void byrone::Shader::Set(const char *name, int value) {
-	glUniform1i(glGetUniformLocation(this->id, name), value);
+	GL_CHECK(glUniform1i(glGetUniformLocation(this->id, name), value))
 }
 
 void byrone::Shader::Set(const char *name, float x, float y) {
-	glUniform2f(glGetUniformLocation(this->id, name), x, y);
+	GL_CHECK(glUniform2f(glGetUniformLocation(this->id, name), x, y))
 }
 
 void byrone::Shader::Set(const char *name, const glm::vec2 &value) {
-	glUniform2f(glGetUniformLocation(this->id, name), value.x, value.y);
+	GL_CHECK(glUniform2f(glGetUniformLocation(this->id, name), value.x, value.y))
 }
 
 void byrone::Shader::Set(const char *name, float x, float y, float z) {
-	glUniform3f(glGetUniformLocation(this->id, name), x, y, z);
+	GL_CHECK(glUniform3f(glGetUniformLocation(this->id, name), x, y, z))
 }
 
 void byrone::Shader::Set(const char *name, const glm::vec3 &value) {
-	glUniform3f(glGetUniformLocation(this->id, name), value.x, value.y, value.z);
+	GL_CHECK(glUniform3f(glGetUniformLocation(this->id, name), value.x, value.y, value.z))
 }
 
 void byrone::Shader::Set(const char *name, float x, float y, float z, float w) {
-	glUniform4f(glGetUniformLocation(this->id, name), x, y, z, w);
+	GL_CHECK(glUniform4f(glGetUniformLocation(this->id, name), x, y, z, w))
 }
 
 void byrone::Shader::Set(const char *name, const glm::vec4 &value) {
-	glUniform4f(glGetUniformLocation(this->id, name), value.x, value.y, value.z, value.w);
+	GL_CHECK(glUniform4f(glGetUniformLocation(this->id, name), value.x, value.y, value.z, value.w))
 }
 
 void byrone::Shader::Set(const char *name, const glm::mat4 &matrix) {
-	glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, false, glm::value_ptr(matrix));
+	GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, false, glm::value_ptr(matrix)))
 }
 
 void byrone::Shader::checkShaderErrors(unsigned int shaderId) {
@@ -84,12 +86,12 @@ void byrone::Shader::checkShaderErrors(unsigned int shaderId) {
 	int logLength;
 	glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logLength);
 
-	std::vector<char> error(logLength + 1);
+	char error[logLength + 1];
 
 	glGetShaderInfoLog(shaderId, logLength, nullptr, &error[0]);
 
 	std::cout << "Error compiling shader:" << std::endl
-			  << std::string(error.begin(), error.end()) << std::endl;
+			  << std::string(error) << std::endl;
 }
 
 void byrone::Shader::checkProgramErrors(unsigned int programId) {
@@ -103,10 +105,10 @@ void byrone::Shader::checkProgramErrors(unsigned int programId) {
 	int logLength;
 	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
 
-	std::vector<char> error(logLength + 1);
+	char error[logLength + 1];
 
 	glGetProgramInfoLog(programId, logLength, nullptr, &error[0]);
 
 	std::cout << "Error compiling program:" << std::endl
-			  << std::string(error.begin(), error.end()) << std::endl;
+			  << std::string(error) << std::endl;
 }

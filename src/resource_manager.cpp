@@ -6,8 +6,8 @@
 #include <fstream>
 #include <external/stb_image.h>
 
-std::map<unsigned int, byrone::Shader> byrone::ResourceManager::Shaders;
-std::map<unsigned int, byrone::Texture2D> byrone::ResourceManager::Textures;
+std::unordered_map<unsigned int, byrone::Shader> byrone::ResourceManager::Shaders;
+std::unordered_map<unsigned int, byrone::Texture2D> byrone::ResourceManager::Textures;
 
 byrone::Shader byrone::ResourceManager::LoadShader(const char *vertexFile, const char *fragmentFile) {
 	auto shader = compileShaderFiles(vertexFile, fragmentFile);
@@ -54,13 +54,13 @@ byrone::Shader byrone::ResourceManager::compileShaderFiles(const char *vertexFil
 
 		if (!vertexShaderFile.is_open()) {
 			std::cout << "Failed to read vertex shader:" << std::endl
-			          << vertexFile << std::endl;
+					  << vertexFile << std::endl;
 			return {};
 		}
 
 		if (!fragmentShaderFile.is_open()) {
 			std::cout << "Failed to read fragment shader:" << std::endl
-			          << fragmentFile << std::endl;
+					  << fragmentFile << std::endl;
 			return {};
 		}
 
@@ -75,7 +75,7 @@ byrone::Shader byrone::ResourceManager::compileShaderFiles(const char *vertexFil
 	}
 	catch (std::exception &e) {
 		std::cout << "Failed to read shader files:" << std::endl
-		          << e.what() << std::endl;
+				  << e.what() << std::endl;
 	}
 
 	Shader shader;
@@ -97,7 +97,7 @@ byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *path, 
 
 	if (stbi_failure_reason()) {
 		std::cout << "Failed to read texture file:" << std::endl
-		          << stbi_failure_reason() << std::endl;
+				  << stbi_failure_reason() << std::endl;
 
 		return texture;
 	}
