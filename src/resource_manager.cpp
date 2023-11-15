@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 
+std::map<unsigned int, byrone::Model> byrone::ResourceManager::Models;
 std::map<unsigned int, byrone::Shader> byrone::ResourceManager::Shaders;
 std::map<unsigned int, byrone::Texture2D> byrone::ResourceManager::Textures;
 
@@ -57,7 +58,13 @@ byrone::Model byrone::ResourceManager::LoadModel(const char *path, byrone::Model
 
 	fclose(file);
 
+	Models[Models.size()] = model;
+
 	return model;
+}
+
+byrone::Model byrone::ResourceManager::GetModel(unsigned int id) {
+	return Models[id];
 }
 
 void byrone::ResourceManager::Clear() {
@@ -67,6 +74,12 @@ void byrone::ResourceManager::Clear() {
 
 	for (const auto &iter: Textures) {
 		glDeleteTextures(1, &iter.second.id);
+	}
+
+	for (const auto &iter: Models) {
+		glDeleteBuffers(1, &iter.second.vertexId);
+		glDeleteBuffers(1, &iter.second.uvId);
+		glDeleteVertexArrays(1, &iter.second.id);
 	}
 }
 

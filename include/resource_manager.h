@@ -13,6 +13,7 @@ namespace byrone {
 	class ResourceManager {
 	public:
 		// resources
+		static std::map<unsigned int, Model> Models;
 		static std::map<unsigned int, Shader> Shaders;
 		static std::map<unsigned int, Texture2D> Textures;
 
@@ -23,12 +24,14 @@ namespace byrone {
 		static Shader GetShader(unsigned int id);
 
 		// loads and compile a texture from file
-		static byrone::Texture2D LoadTexture(const char *path, bool alpha, TextureType type);
+		static Texture2D LoadTexture(const char *path, bool alpha, TextureType type);
 
 		// retrieves a stored texture
 		static Texture2D GetTexture(unsigned int id);
 
 		static Model LoadModel(const char *path, ModelType type);
+
+		static Model GetModel(unsigned int id);
 
 		// deallocates all loaded resources
 		static void Clear();

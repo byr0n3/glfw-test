@@ -8,22 +8,29 @@
 namespace byrone {
 	class Model {
 	public:
+		unsigned int id;
+
+		Model();
+
 		Model(std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals);
 
-		std::vector<glm::vec3> getVertices();
+		GLuint vertexId;
+		GLuint uvId;
 
-		std::vector<glm::vec2> getUvs();
+		void Compile();
 
-		std::vector<glm::vec3> getNormals();
+		GLsizei getVertexSize();
 
-		GLuint loadVertexBuffer();
-
-		GLuint loadUvBuffer();
+		GLsizei getUvSize();
 
 	private:
 		std::vector<glm::vec3> vertices;
 		std::vector<glm::vec2> uvs;
 		std::vector<glm::vec3> normals;
+
+		GLuint loadVertexBuffer();
+
+		GLuint loadUvBuffer();
 	};
 
 	enum struct ModelType {

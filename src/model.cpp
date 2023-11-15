@@ -2,26 +2,33 @@
 
 #include "include/model.h"
 
+byrone::Model::Model() : vertices(), uvs(), normals() {
+}
+
 byrone::Model::Model(std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals) {
 	this->vertices = std::move(vertices);
 	this->uvs = std::move(uvs);
 	this->normals = std::move(normals);
+
+	glGenVertexArrays(1, &this->id);
+	glBindVertexArray(this->id);
 }
 
-std::vector<glm::vec3> byrone::Model::getVertices() {
-	return this->vertices;
+void byrone::Model::Compile() {
+	this->vertexId = this->loadVertexBuffer();
+	this->uvId = this->loadUvBuffer();
 }
 
-std::vector<glm::vec2> byrone::Model::getUvs() {
-	return this->uvs;
+GLsizei byrone::Model::getVertexSize() {
+	return (GLsizei) this->vertices.size();
 }
 
-std::vector<glm::vec3> byrone::Model::getNormals() {
-	return this->normals;
+GLsizei byrone::Model::getUvSize() {
+	return (GLsizei) this->uvs.size();
 }
 
 GLuint byrone::Model::loadVertexBuffer() {
-	auto size = (GLsizeiptr) (this->vertices.size() * sizeof(glm::vec3));
+	auto size = (GLsizeiptr) (this->getVertexSize() * sizeof(glm::vec3));
 
 	GLuint buffer;
 	// Generate 1 buffer
@@ -35,7 +42,7 @@ GLuint byrone::Model::loadVertexBuffer() {
 }
 
 GLuint byrone::Model::loadUvBuffer() {
-	auto size = (GLsizeiptr) (this->uvs.size() * sizeof(glm::vec2));
+	auto size = (GLsizeiptr) (this->getUvSize() * sizeof(glm::vec2));
 
 	GLuint buffer;
 	// Generate 1 buffer

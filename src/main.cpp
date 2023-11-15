@@ -76,11 +76,6 @@ int main() {
 	// Create a blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	// Create a vertex
-	GLuint vertexId;
-	glGenVertexArrays(1, &vertexId);
-	glBindVertexArray(vertexId);
-
 	// Load the simple shaders
 	byrone::Shader shader = byrone::ResourceManager::LoadShader("assets/shaders/simple_vertex_shader.vertexshader",
 																"assets/shaders/simple_fragment_shader.fragmentshader");
@@ -93,8 +88,7 @@ int main() {
 	// Load our model
 	byrone::Model model = byrone::ResourceManager::LoadModel("assets/models/cube.obj", byrone::ModelType::OBJ);
 
-	GLuint vertexBuffer = model.loadVertexBuffer();
-	GLuint uvBuffer = model.loadUvBuffer();
+	model.Compile();
 
 	byrone::controls controls(window, glm::vec3(0, 0, 5), 0.1f, 0.005f);
 
@@ -105,7 +99,7 @@ int main() {
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		double currentTime = glfwGetTime();
 		float deltaTime = (float) currentTime - (float) lastRenderTime;
 
@@ -134,8 +128,8 @@ int main() {
 		shader.SetInteger("textureSampler", 0);
 
 		// Load the previously made buffer
-		glEnableVertexAttribArray(vertexBuffer - 1);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, model.vertexId);
 		glVertexAttribPointer(
 				0,
 				3,
@@ -145,8 +139,8 @@ int main() {
 				(void *) nullptr // offset
 		);
 
-		glEnableVertexAttribArray(uvBuffer - 1);
-		glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, model.uvId);
 		glVertexAttribPointer(
 				1,
 				2,
@@ -157,7 +151,7 @@ int main() {
 		);
 
 		// Draw
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei) model.getVertices().size());
+		glDrawArrays(GL_TRIANGLES, 0, model.getVertexSize());
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 
@@ -165,9 +159,6 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
-	glDeleteBuffers(1, &vertexBuffer);
-	glDeleteVertexArrays(1, &vertexId);
 
 	byrone::ResourceManager::Clear();
 
