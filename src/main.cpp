@@ -1,168 +1,105 @@
 #include <iostream>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <include/resource_manager.h>
-#include <include/controls.h>
-#include <sstream>
+// we MUST import/reference GLEW before importing GLFW
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
+#include "include/game.h"
+#include "include/resource_manager.h"
 
-static double lastRenderTime;
-static int frameCount;
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-void updatePerformanceMetrics(GLFWwindow *window, float deltaTime) {
-	frameCount++;
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
-	if (deltaTime >= 1.0) {
-		auto frameTime = 1000.0 / (float) frameCount;
-		auto fps = int(1000 / frameTime);
+const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_HEIGHT = 600;
 
-		std::stringstream temp;
-		temp << fps << " FPS | " << frameTime << "ms";
-
-		glfwSetWindowTitle(window, temp.str().c_str());
-		frameCount = 0;
-		lastRenderTime += 1.0;
-	}
-}
+byrone::Game game(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 int main() {
 	if (!glfwInit()) {
-		std::cout << "Failed to initialize GLFW." << std::endl;
+		std::cout << "Couldn't initialize GLFW" << std::endl;
 		return 1;
 	}
-
-	// 4x antialiasing
-	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	// OpenGL 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	// Apparently fix for MacOS
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	// Use newer OpenGL
+	// Use the default(?) OpenGL profile
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	auto window = glfwCreateWindow(1024, 768, "Game Test", nullptr, nullptr);
+	// Apple fix
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
-	if (window == nullptr) {
-		std::cout << "Failed to open GLFW window." << std::endl;
-		glfwTerminate();
-		return 1;
-	}
+	// Enable resizing
+	glfwWindowHint(GLFW_RESIZABLE, true);
 
+	// Create window
+	GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
-	// Initialize GLEW
-	glewExperimental = true;
+	// Set callbacks
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	if (glewInit() != GLEW_OK) {
-		std::cout << "Failed to initialize GLEW." << std::endl;
-		glfwTerminate();
-		return 1;
-	}
+	// Configure OpenGL
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// Prevents missing state changes by only resetting them when `glfwGetKey` gets called
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	game.Init();
 
-	// Enable the Z-Buffer to only render triangles that we should render
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	double deltaTime = 0.0f;
+	double lastFrame = 0.0f;
 
-	// Don't render triangles that aren't seen by the camera
-	glEnable(GL_CULL_FACE);
-
-	// Create a blue background
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
-	// Load the simple shaders
-	byrone::Shader shader = byrone::ResourceManager::LoadShader("assets/shaders/simple_vertex_shader.vertexshader",
-																"assets/shaders/simple_fragment_shader.fragmentshader");
-
-	// Load our test texture
-	byrone::Texture2D texture = byrone::ResourceManager::LoadTexture("assets/textures/uv.DDS",
-																	 false,
-																	 byrone::TextureType::DDS);
-
-	// Load our model
-	byrone::Model model = byrone::ResourceManager::LoadModel("assets/models/cube.obj", byrone::ModelType::OBJ);
-
-	model.Compile();
-
-	byrone::controls controls(window, glm::vec3(0, 0, 5), 0.1f, 0.005f);
-
-	lastRenderTime = glfwGetTime();
-	frameCount = 0;
-
-	// Listen for the 'Escape' key for closing
-	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		double currentTime = glfwGetTime();
-		float deltaTime = (float) currentTime - (float) lastRenderTime;
-
-		updatePerformanceMetrics(window, deltaTime);
-
-		controls.update(deltaTime);
-
-		// FoV, aspect ratio (4/3), near clipping plane, far clipping plane
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
-
-		glm::vec3 position = controls.getPosition();
-		glm::vec3 forward = controls.getForward();
-		glm::vec3 up = controls.getUp();
-
-		// Camera view
-		glm::mat4 camera = glm::lookAt(position, position + forward, up);
-
-		// Model view projection = multiplication of our 3 matrices
-		glm::mat4 mvp = projection * camera;
-
-		// Use our calculated rotation on the currently bound shader and enable the shader
-		shader.SetMatrix4("mvp", mvp, true);
-
-		// Bind our loaded texture and apply it on the shader
-		texture.Bind();
-		shader.SetInteger("textureSampler", 0);
-
-		// Load the previously made buffer
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, model.vertexId);
-		glVertexAttribPointer(
-				0,
-				3,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				(void *) nullptr // offset
-		);
-
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, model.uvId);
-		glVertexAttribPointer(
-				1,
-				2,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				(void *) nullptr
-		);
-
-		// Draw
-		glDrawArrays(GL_TRIANGLES, 0, model.getVertexSize());
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-
-		// Swap the buffer with the new one
-		glfwSwapBuffers(window);
+	while (!glfwWindowShouldClose(window)) {
+		// Calculate delta time
+		double currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		glfwPollEvents();
+
+		game.ProcessInput(deltaTime);
+
+		game.Update(deltaTime);
+
+		// Clear screen and render
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		game.Render();
+
+		// Activate new buffer
+		glfwSwapBuffers(window);
 	}
 
+	// Clear loaded resources
 	byrone::ResourceManager::Clear();
 
 	glfwTerminate();
-
 	return 0;
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
+	// close the window if we press the 'Escape' key
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+		return;
+	}
+
+	// invalid keys
+	if (key < 0 || key >= 1024) {
+		return;
+	}
+
+	if (action == GLFW_PRESS) {
+		game.keys[key] = true;
+	} else if (action == GLFW_RELEASE) {
+		game.keys[key] = false;
+	}
+}
+
+// resize handler
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+	glViewport(0, 0, width, height);
 }

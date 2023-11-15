@@ -26,26 +26,11 @@ namespace byrone {
 		// filtering mode if texture pixels > screen pixels
 		GLint filterMax;
 
-		// enable/disable mipmapping
-		bool mipmap;
-
 		// generates texture from image data
 		void Generate(GLsizei width, GLsizei height, unsigned char *data);
 
-		// generates texture from mipmap data (used for DDS files)
-		void GenerateFromMipmap(GLsizei width,
-								GLsizei height,
-								unsigned int fourCC,
-								unsigned int mipMapCount,
-								unsigned char *data);
-
 		// binds the texture as the current active GL_TEXTURE_2D texture object
 		void Bind() const;
-	};
-
-	enum struct TextureType {
-		BMP,
-		DDS,
 	};
 }
 

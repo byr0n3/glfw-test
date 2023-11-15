@@ -26,11 +26,12 @@ set(ALL_LIBS ${OPENGL_LIBRARY} glfw GLEW)
 
 add_executable(
         game_test src/main.cpp
-        src/model.cpp include/model.h
+        src/game.cpp include/game.h
         src/shader.cpp include/shader.h
-        src/controls.cpp include/controls.h
         src/texture2d.cpp include/texture2d.h
         src/resource_manager.cpp include/resource_manager.h
+
+        external/stb_image.h
 )
 
 target_link_libraries(game_test ${ALL_LIBS})

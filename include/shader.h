@@ -1,9 +1,8 @@
 #ifndef BYRONE_SHADER_H
 #define BYRONE_SHADER_H
 
-#include <string>
-
 #include <glm/glm.hpp>
+// used in shader.cpp
 #include <glm/gtc/type_ptr.hpp>
 
 namespace byrone {
