@@ -33,9 +33,6 @@ void byrone::Shader::Compile(const char *vertex, const char *fragment) {
 	checkProgramErrors(this->id);
 
 	// Cleanup
-	glDetachShader(this->id, vertexId);
-	glDetachShader(this->id, fragmentId);
-
 	glDeleteShader(vertexId);
 	glDeleteShader(fragmentId);
 }

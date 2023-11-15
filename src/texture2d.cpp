@@ -4,7 +4,7 @@ byrone::Texture2D::Texture2D() : id(0),
 								 width(0), height(0),
 								 internalFormat(GL_RGB), imageFormat(GL_RGB),
 								 wrapS(GL_REPEAT), wrapT(GL_REPEAT),
-								 filterMin(GL_LINEAR_MIPMAP_LINEAR), filterMax(GL_LINEAR) {
+								 filterMin(GL_LINEAR), filterMax(GL_LINEAR) {
 	glGenTextures(1, &this->id);
 }
 
@@ -37,7 +37,6 @@ void byrone::Texture2D::Generate(GLsizei _width, GLsizei _height, unsigned char 
 }
 
 void byrone::Texture2D::Bind() const {
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->id);
 }
 

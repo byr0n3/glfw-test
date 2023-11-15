@@ -3,11 +3,10 @@
 #include <include/resource_manager.h>
 
 byrone::SpriteRenderer *spriteRenderer;
-byrone::Texture2D testTexture;
 
 byrone::Game::Game(unsigned int width, unsigned int height) : state(byrone::GameState::GAME_ACTIVE),
-                                                              width(width), height(height),
-                                                              keys() {
+															  width(width), height(height),
+															  keys() {
 
 }
 
@@ -18,7 +17,7 @@ void byrone::Game::Init() const {
 	auto h = static_cast<float>(this->height);
 
 	byrone::Shader shader = byrone::ResourceManager::LoadShader("assets/shaders/sprite.vert",
-	                                                            "assets/shaders/sprite.frag");
+																"assets/shaders/sprite.frag");
 
 	glm::mat4 projection = glm::ortho(0.0f, w, h, 0.0f, -1.0f, 1.0f);
 
@@ -27,7 +26,7 @@ void byrone::Game::Init() const {
 
 	spriteRenderer = new byrone::SpriteRenderer(shader);
 
-	testTexture = byrone::ResourceManager::LoadTexture("assets/textures/awesomeface.png", true);
+	byrone::ResourceManager::LoadTexture("assets/textures/awesomeface.png", true);
 }
 
 void byrone::Game::Update(double deltaTime) {
@@ -43,5 +42,6 @@ void byrone::Game::Render() {
 	auto size = glm::vec2(300.0f, 400.0f);
 	auto color = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	spriteRenderer->Draw(testTexture, position, size, 45.0f, color);
+	auto texture = byrone::ResourceManager::GetTexture(1);
+	spriteRenderer->Draw(texture, position, size, 45.0f, color);
 }
