@@ -1,5 +1,5 @@
 #include <include/sprite_renderer.h>
-#include <src/debug.h>
+#include <include/debug.h>
 
 static const GLfloat vertices[] = {
 		// pos      // tex

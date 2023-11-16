@@ -1,5 +1,5 @@
 #include <include/texture2d.h>
-#include <src/debug.h>
+#include <include/debug.h>
 
 byrone::Texture2D::Texture2D() : id(0),
 								 width(0), height(0),

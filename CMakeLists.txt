@@ -26,8 +26,9 @@ set(ALL_LIBS ${OPENGL_LIBRARY} glfw GLEW)
 
 add_executable(
         game_test src/main.cpp
-        src/debug.h
+        include/debug.h
         src/game.cpp include/game.h
+        src/ball_object.cpp include/ball_object.h
         src/game_object.cpp include/game_object.h
         src/level.cpp include/level.h
         src/shader.cpp include/shader.h

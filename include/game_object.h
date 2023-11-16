@@ -20,7 +20,7 @@ namespace byrone {
 
 		GameObject();
 
-		GameObject(glm::vec2 pos,
+		GameObject(glm::vec2 position,
 				   glm::vec2 size,
 				   Texture2D sprite,
 				   float rotation = 0.0f,

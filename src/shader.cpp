@@ -1,7 +1,7 @@
 #include <include/shader.h>
 #include <GL/glew.h>
 #include <iostream>
-#include <src/debug.h>
+#include <include/debug.h>
 
 void byrone::Shader::Use() const {
 	GL_CHECK(glUseProgram(this->id))
