@@ -10,6 +10,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 const unsigned int SCREEN_WIDTH = 800;
 const unsigned int SCREEN_HEIGHT = 600;
 
+// @todo Don't initialize here
 byrone::Game game(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 int main() {
@@ -46,11 +47,18 @@ int main() {
 		return 1;
 	}
 
+	// Get the size of the frame buffer
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+
+	// Re-assign our game instance to match the frame buffer size
+	game = byrone::Game(width, height);
+
 	// Set callbacks
 	glfwSetKeyCallback(window, key_callback);
 
-	// Configure OpenGL
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	// Configure our viewport and OpenGL
+	glViewport(0, 0, width, height);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

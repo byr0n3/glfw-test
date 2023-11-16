@@ -100,6 +100,8 @@ byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *path, 
 				  << path << std::endl
 				  << stbi_failure_reason() << std::endl;
 
+		stbi_image_free(data);
+
 		return texture;
 	}
 

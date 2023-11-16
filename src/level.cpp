@@ -4,17 +4,12 @@
 #include <sstream>
 #include <fstream>
 
-byrone::Level::Level() {
-}
+byrone::Level::Level() = default;
 
 void byrone::Level::Load(const char *filePath, unsigned int width, unsigned int height) {
 	this->Bricks.clear();
 
-	unsigned int tileCode;
-	Level level;
-	std::string line;
 	std::ifstream stream(filePath);
-	std::vector<std::vector<unsigned int>> tiles;
 
 	if (!stream) {
 		std::cout << "Unable to open level file:" << std::endl
@@ -23,16 +18,28 @@ void byrone::Level::Load(const char *filePath, unsigned int width, unsigned int 
 		return;
 	}
 
+	std::string line;
+	unsigned int tileCode;
+	std::vector<std::vector<unsigned int>> tiles;
+
+	// for each line
 	while (std::getline(stream, line)) {
-		std::istringstream sstream(line);
+		std::istringstream reader(line);
 		std::vector<unsigned int> row;
 
-		while (sstream >> tileCode) {
+		// read every word separated by spaces
+		while (reader >> tileCode) {
 			row.push_back(tileCode);
 		}
 
-		tiles.push_back(row);
+		if (!row.empty()) {
+			tiles.push_back(row);
+		}
+
+		reader.clear();
 	}
+
+	stream.close();
 
 	this->init(tiles, width, height);
 }
