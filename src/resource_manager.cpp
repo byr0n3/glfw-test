@@ -6,31 +6,31 @@
 #include <fstream>
 #include <external/stb_image.h>
 
-std::unordered_map<unsigned int, byrone::Shader> byrone::ResourceManager::Shaders;
-std::unordered_map<unsigned int, byrone::Texture2D> byrone::ResourceManager::Textures;
+std::unordered_map<const char *, byrone::Shader> byrone::ResourceManager::Shaders;
+std::unordered_map<const char *, byrone::Texture2D> byrone::ResourceManager::Textures;
 
-byrone::Shader byrone::ResourceManager::LoadShader(const char *vertexFile, const char *fragmentFile) {
+byrone::Shader byrone::ResourceManager::LoadShader(const char *name, const char *vertexFile, const char *fragmentFile) {
 	auto shader = compileShaderFiles(vertexFile, fragmentFile);
 
-	Shaders[shader.id] = shader;
+	Shaders[name] = shader;
 
 	return shader;
 }
 
-byrone::Shader byrone::ResourceManager::GetShader(unsigned int id) {
-	return Shaders[id];
+byrone::Shader byrone::ResourceManager::GetShader(const char *name) {
+	return Shaders[name];
 }
 
-byrone::Texture2D byrone::ResourceManager::LoadTexture(const char *file, bool alpha) {
+byrone::Texture2D byrone::ResourceManager::LoadTexture(const char *name, const char *file, bool alpha) {
 	auto texture = compileTextureFile(file, alpha);
 
-	Textures[texture.id] = texture;
+	Textures[name] = texture;
 
 	return texture;
 }
 
-byrone::Texture2D byrone::ResourceManager::GetTexture(unsigned int id) {
-	return Textures[id];
+byrone::Texture2D byrone::ResourceManager::GetTexture(const char *name) {
+	return Textures[name];
 }
 
 void byrone::ResourceManager::Clear() {
@@ -97,6 +97,7 @@ byrone::Texture2D byrone::ResourceManager::compileTextureFile(const char *path, 
 
 	if (stbi_failure_reason()) {
 		std::cout << "Failed to read texture file:" << std::endl
+				  << path << std::endl
 				  << stbi_failure_reason() << std::endl;
 
 		return texture;

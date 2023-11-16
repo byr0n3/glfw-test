@@ -99,8 +99,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	}
 
 	if (action == GLFW_PRESS) {
-		game.keys[key] = true;
+		game.Keys[key] = true;
 	} else if (action == GLFW_RELEASE) {
-		game.keys[key] = false;
+		game.Keys[key] = false;
 	}
 }

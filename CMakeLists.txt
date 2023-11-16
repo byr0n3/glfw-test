@@ -28,6 +28,8 @@ add_executable(
         game_test src/main.cpp
         src/debug.h
         src/game.cpp include/game.h
+        src/game_object.cpp include/game_object.h
+        src/level.cpp include/level.h
         src/shader.cpp include/shader.h
         src/texture2d.cpp include/texture2d.h
         src/sprite_renderer.cpp include/sprite_renderer.h

@@ -1,6 +1,9 @@
 #ifndef BYRONE_GAME
 #define BYRONE_GAME
 
+#include <vector>
+#include <include/level.h>
+
 namespace byrone {
 	enum struct GameState {
 		GAME_MENU,
@@ -14,13 +17,16 @@ namespace byrone {
 
 		~Game();
 
-		GameState state;
+		GameState State;
 
-		bool keys[1024];
+		bool Keys[1024];
 
-		unsigned int width, height;
+		unsigned int Width, Height;
 
-		void Init() const;
+		std::vector<Level> Levels;
+		unsigned int CurrentLevelIdx;
+
+		void Init();
 
 		void ProcessInput(double deltaTime);
 
