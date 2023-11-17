@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <include/level.h>
+#include <include/game_object.h>
+#include <include/ball_object.h>
 
 namespace byrone {
 	enum struct GameState {
@@ -33,6 +35,15 @@ namespace byrone {
 		void Update(double deltaTime);
 
 		void Render();
+
+	private:
+		void CheckCollisions();
+
+		static bool CheckCollision(GameObject &one, GameObject &two);
+
+		static bool CheckCollision(const byrone::BallObject &ball,
+								   const byrone::GameObject &obj,
+								   glm::vec2 &difference);
 	};
 }
 

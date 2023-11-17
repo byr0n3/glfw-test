@@ -1,5 +1,4 @@
 #include <include/game.h>
-#include <include/ball_object.h>
 #include <include/sprite_renderer.h>
 #include <include/resource_manager.h>
 #include "GLFW/glfw3.h"
@@ -18,9 +17,26 @@ byrone::SpriteRenderer *spriteRenderer;
 byrone::GameObject *player;
 byrone::BallObject *ball;
 
+static void bounce(byrone::BallObject &ball, const byrone::GameObject &obj) {
+	auto pos2 = ball.Position + ball.Radius;
+	auto nearest = glm::max(obj.Position, glm::min(pos2, obj.Position + obj.Size));
+	auto distance = pos2 - nearest;
+	auto normalizedDistance = glm::normalize(distance);
+
+	// if circle is moving toward the rect
+	if (glm::dot(ball.Velocity, distance) < 0.0f) {
+		auto tangent_vel = glm::dot(normalizedDistance, ball.Velocity);
+		ball.Velocity = ball.Velocity - (tangent_vel * 2.0f);
+	}
+
+	auto penetrationDepth = ball.Radius - glm::length(distance);
+	auto penetrationVector = normalizedDistance * penetrationDepth;
+	ball.Position = ball.Position - penetrationVector;
+}
+
 byrone::Game::Game(unsigned int width, unsigned int height) : State(byrone::GameState::GAME_ACTIVE),
 															  Width(width), Height(height),
-															  Keys() {
+															  Keys(), CurrentLevelIdx(0) {
 
 }
 
@@ -79,6 +95,10 @@ void byrone::Game::Init() {
 
 void byrone::Game::Update(double deltaTime) {
 	ball->Move(deltaTime, this->Width);
+
+	if (!ball->Stuck) {
+		this->CheckCollisions();
+	}
 }
 
 void byrone::Game::ProcessInput(double deltaTime) {
@@ -122,4 +142,74 @@ void byrone::Game::Render() {
 		// @todo Don't do vector lookup every frame
 		this->Levels[this->CurrentLevelIdx].Draw(*spriteRenderer);
 	}
+}
+
+void byrone::Game::CheckCollisions() {
+	glm::vec2 difference;
+
+	// @todo Don't do vector lookup every frame
+	// Check collision with the brick blocks of the current level
+	for (byrone::GameObject &obj: this->Levels[this->CurrentLevelIdx].Bricks) {
+		if (obj.Destroyed) {
+			continue;
+		}
+
+		bool colliding = byrone::Game::CheckCollision(*ball, obj, difference);
+
+		if (!colliding) {
+			continue;
+		}
+
+		if (!obj.IsSolid) {
+			obj.Destroyed = true;
+		}
+
+		bounce(*ball, obj);
+	}
+
+	// Check collision with the player paddle
+	bool playerCollision = byrone::Game::CheckCollision(*ball, *player, difference);
+
+	if (!playerCollision) {
+		return;
+	}
+
+	bounce(*ball, *player);
+}
+
+// AABB
+bool byrone::Game::CheckCollision(GameObject &one, GameObject &two) {
+	// Collides on the X-axis?
+	bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
+					  two.Position.x + two.Size.x >= one.Position.x;
+
+	// Collides on the Y-axis?
+	bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
+					  two.Position.y + two.Size.y >= one.Position.y;
+
+	return collisionX && collisionY;
+}
+
+// AABB Circle
+bool byrone::Game::CheckCollision(const byrone::BallObject &ball,
+								  const byrone::GameObject &obj,
+								  glm::vec2 &difference) {
+	glm::vec2 center(ball.Position + ball.Radius);
+
+	// Calculate AABB info (center, half-extents)
+	glm::vec2 aabb_half_extents(obj.Size.x / 2.0f, obj.Size.y / 2.0f);
+	glm::vec2 aabb_center(
+			obj.Position.x + aabb_half_extents.x,
+			obj.Position.y + aabb_half_extents.y
+	);
+
+	difference = center - aabb_center;
+
+	glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
+
+	glm::vec2 closest = aabb_center + clamped;
+
+	difference = closest - center;
+
+	return glm::dot(difference, difference) <= ball.Radius * ball.Radius;
 }
